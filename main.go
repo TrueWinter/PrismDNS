@@ -73,6 +73,12 @@ func main() {
 		})
 	}
 
+	if len(routes) == 0 {
+		fmt.Fprintln(os.Stderr, "Error: No routes configured. Please use -route flag with at least one route configuration.")
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	fmt.Println("Configured routes:")
 	for _, route := range routes {
 		fmt.Printf("  - %v -> %v:%v\n", route.Domain, route.Ip, route.Port)
