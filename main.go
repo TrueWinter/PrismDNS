@@ -21,6 +21,8 @@ func (r *RouteFlags) Set(value string) error {
 	return nil
 }
 
+var FALLBACK_ROUTE_DOMAIN = "_fallback_"
+
 func main() {
 	var routeFlags RouteFlags
 	host := flag.String("host", "0.0.0.0", "Address that the DNS proxy runs on")
@@ -30,8 +32,31 @@ func main() {
 	clientReadTimeout := flag.Int("client-read-timeout", 2, "Read timeout for client DNS requests")
 	clientIdleTimeout := flag.Int("client-idle-timeout", 8, "Idle timeout for client DNS requests")
 	debug := flag.Bool("debug", false, "Enable debug logs")
+	fallback := flag.String("fallback", "", "Fallback DNS server in the format <ip>[,<port>] used if no routes match. If unset, NXDOMAIN is returned.")
 	flag.Var(&routeFlags, "route", "Route configuration in the format <domain>,<ip>[,<port>]. Can be used multiple times.")
 	flag.Parse()
+
+	if *fallback != "" {
+		parts := strings.Split(*fallback, ",")
+
+		var ip string
+		// The port is parsed later
+		var port string
+		
+		switch len(parts) {
+			case 1:
+				ip = parts[0]
+			case 2:
+				ip = parts[0]
+				port = parts[1]
+			default:
+				fmt.Fprintf(os.Stderr, "Invalid fallback format: %s (expected 'ip' or 'ip,port')\n", *fallback)
+				flag.Usage()
+				os.Exit(1)
+		}
+		
+		routeFlags = append(routeFlags, fmt.Sprintf("%v,%v,%v", FALLBACK_ROUTE_DOMAIN, ip, port))
+	}
 
 	routes := []Route{}
 
@@ -39,8 +64,8 @@ func main() {
 		parts := strings.Split(route, ",")
 		if len(parts) != 2 && len(parts) != 3 {
 			fmt.Fprintf(os.Stderr, "Invalid route format: %s (expected 'domain,ip' or 'domain,ip,port')\n", route)
-				flag.Usage()
-				os.Exit(1)
+			flag.Usage()
+			os.Exit(1)
 		}
 
 		domain := strings.ToLower(parts[0])
@@ -63,6 +88,10 @@ func main() {
 			port = p
 		}
 
+		if domain == FALLBACK_ROUTE_DOMAIN {
+			domain = ""
+		}
+
 		routes = append(routes, Route{
 			Domain: domain,
 			Ip: ip,
@@ -81,7 +110,11 @@ func main() {
 
 	fmt.Println("Configured routes:")
 	for _, route := range routes {
-		fmt.Printf("  - %v -> %v:%v\n", route.Domain, route.Ip, route.Port)
+		domain := route.Domain
+		if domain == "" {
+			domain = FALLBACK_ROUTE_DOMAIN
+		}
+		fmt.Printf("  - %v -> %v:%v\n", domain, route.Ip, route.Port)
 	}
 
 	server := Server{
