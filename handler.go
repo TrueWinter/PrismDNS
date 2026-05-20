@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 type DnsHandler struct {
 	Routes []Route
 	Debug bool
+	RateLimiter *RateLimiter
 	dns.Handler
 	Response
 }
@@ -40,6 +42,16 @@ func (h *DnsHandler) getMatchingRoute(domain string) *Route {
 	return bestMatch
 }
 
+func (h *DnsHandler) shouldRateLimit(domain string, addr net.Addr) bool {
+	ip, _, err := net.SplitHostPort(addr.String())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to parse remote address %v, defaulting to rate limit\n", addr.String())
+		return true
+	}
+
+	return h.RateLimiter.ShouldRateLimit(domain, ip)
+}
+
 func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) {
 	r.Unpack()
 	m := r.Copy()
@@ -56,6 +68,12 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 	domain := questions[0].Header().Name
 	if domain[len(domain)-1:] == "." {
 		domain = domain[:len(domain)-1]
+	}
+
+	if h.shouldRateLimit(domain, w.RemoteAddr()) && w.RemoteAddr().Network() == "udp" {
+		r.Truncated = true
+		h.respond(r, w)
+		return
 	}
 
 	route := h.getMatchingRoute(domain)

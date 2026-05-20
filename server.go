@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"codeberg.org/miekg/dns"
@@ -11,20 +12,21 @@ import (
 
 type Server struct {
 	Host string
-	Port string
+	Port int
 	Routes []Route
 	Debug bool
 	UpstreamReadTimeout int
 	UpstreamWriteTimeout int
 	ClientReadTimeout int
 	ClientIdleTimeout int
+	RateLimiter *RateLimiter
 }
 
 var udpServer *dns.Server
 var tcpServer *dns.Server
 
 func (s *Server) resolveAddr() string {
-	return s.Host + ":" + s.Port;
+	return s.Host + ":" + strconv.Itoa(s.Port);
 }
 
 func (s *Server) serve(server *dns.Server) {
@@ -43,6 +45,7 @@ func (s *Server) newServer(net string) *dns.Server {
 		Handler: &DnsHandler{
 			Routes: s.Routes,
 			Debug: s.Debug,
+			RateLimiter: s.RateLimiter,
 		},
 	}
 }
