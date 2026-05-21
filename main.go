@@ -12,7 +12,7 @@ var ServerId string
 var FALLBACK_ROUTE_DOMAIN = "_fallback_"
 
 func main() {
-	flags := ParseFlags(Version)
+	flags := ParseFlags()
 
 	ServerId = flags.ServerId
 	if flags.HideVersion {

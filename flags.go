@@ -48,7 +48,7 @@ type Flags struct {
 	ServerId string
 }
 
-func ParseFlags(softwareVersion string) Flags {
+func ParseFlags() Flags {
 	var routeFlags RouteFlags
 	var domainRateLimitFlags DomainRateLimitFlags
 	host := flag.String("host", "0.0.0.0", "Address that the DNS proxy runs on")
@@ -71,7 +71,7 @@ func ParseFlags(softwareVersion string) Flags {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("Running dns-proxy version %v\n", softwareVersion)
+		fmt.Printf("Running dns-proxy version %v\n", Version)
 		os.Exit(0)
 	}
 
