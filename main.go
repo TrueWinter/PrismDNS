@@ -6,10 +6,18 @@ import (
 	"syscall"
 )
 
+// Set by build script
+var Version string
+var ServerId string
 var FALLBACK_ROUTE_DOMAIN = "_fallback_"
 
 func main() {
-	flags := ParseFlags()
+	flags := ParseFlags(Version)
+
+	ServerId = flags.ServerId
+	if flags.HideVersion {
+		Version = ""
+	}
 
 	server := Server{
 		Host: flags.Host,

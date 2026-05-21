@@ -44,9 +44,11 @@ type Flags struct {
 	ClientReadTimeout int
 	ClientIdleTimeout int
 	Debug bool
+	HideVersion bool
+	ServerId string
 }
 
-func ParseFlags() Flags {
+func ParseFlags(softwareVersion string) Flags {
 	var routeFlags RouteFlags
 	var domainRateLimitFlags DomainRateLimitFlags
 	host := flag.String("host", "0.0.0.0", "Address that the DNS proxy runs on")
@@ -61,9 +63,17 @@ func ParseFlags() Flags {
 	rateLimit := flag.Int("rate-limit", 15000, "Maximum requests per window for all clients (set to 0 to disable)")
 	rateLimitWindow := flag.Int("rate-limit-window", 60, "Time window in seconds for ratelimiting")
 	logRateLimits := flag.Bool("log-rate-limits", true, "Log rate limits at most once every 60 seconds")
+	version := flag.Bool("version", false, "Get dns-proxy version")
+	hideVersion := flag.Bool("hide-version", false, "Hide the version number in DNS responses")
+	serverId := flag.String("server-id", "", "Server ID used in DNS responses")
 	flag.Var(&routeFlags, "route", "Route configuration in the format <domain>,<ip>[,<port>]. Can be used multiple times.")
 	flag.Var(&domainRateLimitFlags, "domain-rate-limit", "Ratelimit overrides for specific domains in the format <domain>,<rate-limit>")
 	flag.Parse()
+
+	if *version {
+		fmt.Printf("Running dns-proxy version %v\n", softwareVersion)
+		os.Exit(0)
+	}
 
 	if *fallback != "" {
 		parts := strings.Split(*fallback, ",")
@@ -178,5 +188,7 @@ func ParseFlags() Flags {
 		DomainRateLimits: domainRateLimits,
 		LogRateLimits: *logRateLimits,
 		Debug: *debug,
+		HideVersion: *hideVersion,
+		ServerId: *serverId,
 	}
 }
