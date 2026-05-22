@@ -66,7 +66,7 @@ func ParseFlags() Flags {
 	version := flag.Bool("version", false, "Get PrismDNS version")
 	hideVersion := flag.Bool("hide-version", false, "Hide the version number in DNS responses")
 	serverId := flag.String("server-id", "", "Server ID used in DNS responses")
-	flag.Var(&routeFlags, "route", "Route configuration in the format <domain>,<ip>[,<port>]. Can be used multiple times.")
+	flag.Var(&routeFlags, "route", "Route configuration in the format <domain>,<ip>[:<port>]. Can be used multiple times.")
 	flag.Var(&domainRateLimitFlags, "domain-rate-limit", "Ratelimit overrides for specific domains in the format <domain>,<rate-limit>")
 	flag.Parse()
 
@@ -76,40 +76,28 @@ func ParseFlags() Flags {
 	}
 
 	if *fallback != "" {
-		parts := strings.Split(*fallback, ",")
-
-		var ip string
-		// The port is parsed later
-		port := "53"
-		
-		switch len(parts) {
-			case 1:
-				ip = parts[0]
-			case 2:
-				ip = parts[0]
-				port = parts[1]
-			default:
-				fmt.Fprintf(os.Stderr, "Invalid fallback format: %s (expected 'ip' or 'ip,port')\n", *fallback)
-				flag.Usage()
-				os.Exit(1)
+		ip, port := ParseHostPort(*fallback)
+		// Validate here before it's added to the route flags so we can log the original value not 0
+		if port == 0 {
+			fmt.Fprintf(os.Stderr, "Invalid route format: %s (expected valid port)\n", *fallback)
+			flag.Usage()
+			os.Exit(1)
 		}
-		
-		routeFlags = append(routeFlags, fmt.Sprintf("%v,%v,%v", FALLBACK_ROUTE_DOMAIN, ip, port))
+		routeFlags = append(routeFlags, fmt.Sprintf("%v,%v:%v", FALLBACK_ROUTE_DOMAIN, ip, port))
 	}
 
 	routes := []Route{}
 
 	for _, route := range routeFlags {
 		parts := strings.Split(route, ",")
-		if len(parts) != 2 && len(parts) != 3 {
-			fmt.Fprintf(os.Stderr, "Invalid route format: %s (expected 'domain,ip' or 'domain,ip,port')\n", route)
+		if len(parts) != 2 {
+			fmt.Fprintf(os.Stderr, "Invalid route format: %s (expected '<domain>,<ip>[:<port>]')\n", route)
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		domain := strings.ToLower(parts[0])
-		ip := parts[1]
-		port := 53
+		ip, port := ParseHostPort(parts[1])
 
 		if domain == "" || ip == "" {
 			fmt.Fprintln(os.Stderr, "Domain and IP cannot be blank")
@@ -117,14 +105,10 @@ func ParseFlags() Flags {
 			os.Exit(1)
 		}
 
-		if len(parts) == 3 {
-			p, err := strconv.Atoi(parts[2])
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "Invalid port number")
-				flag.Usage()
-				os.Exit(1)
-			}
-			port = p
+		if port == 0 {
+			fmt.Fprintf(os.Stderr, "Invalid route format: %s (expected valid port)\n", route)
+			flag.Usage()
+			os.Exit(1)
 		}
 
 		if domain == FALLBACK_ROUTE_DOMAIN {
