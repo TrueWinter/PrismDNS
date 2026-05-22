@@ -60,7 +60,7 @@ func (h *DnsHandler) normalizeDomain(domain string) string {
 }
 
 func getVersionString() string {
-	s := "dns-proxy"
+	s := "PrismDNS"
 	if Version != "" {
 		s = fmt.Sprintf("%v %v", s, Version)
 	}

@@ -15,7 +15,7 @@ if [[ "$UNRESOLVED" != "" ]]; then
 fi
 
 build() {
-  DIST_NAME="dist/dns-proxy-${GOOS}-${GOARCH}"
+  DIST_NAME="dist/PrismDNS-${GOOS}-${GOARCH}"
   if [ "$GOOS" == "windows" ]; then
     DIST_NAME=$DIST_NAME.exe
   fi

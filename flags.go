@@ -51,8 +51,8 @@ type Flags struct {
 func ParseFlags() Flags {
 	var routeFlags RouteFlags
 	var domainRateLimitFlags DomainRateLimitFlags
-	host := flag.String("host", "0.0.0.0", "Address that the DNS proxy runs on")
-	port := flag.Int("port", 53, "Port that the DNS proxy runs on")
+	host := flag.String("host", "0.0.0.0", "Address that PrismDNS runs on")
+	port := flag.Int("port", 53, "Port that PrismDNS runs on")
 	upstreamReadTimeout := flag.Int("upstream-read-timeout", 2, "Read timeout for upstream DNS requests")
 	upstreamWriteTimeout := flag.Int("upstream-write-timeout", 8, "Write timeout for upstream DNS requests")
 	clientReadTimeout := flag.Int("client-read-timeout", 2, "Read timeout for client DNS requests")
@@ -63,7 +63,7 @@ func ParseFlags() Flags {
 	rateLimit := flag.Int("rate-limit", 15000, "Maximum requests per window for all clients (set to 0 to disable)")
 	rateLimitWindow := flag.Int("rate-limit-window", 60, "Time window in seconds for ratelimiting")
 	logRateLimits := flag.Bool("log-rate-limits", true, "Log rate limits at most once every 60 seconds")
-	version := flag.Bool("version", false, "Get dns-proxy version")
+	version := flag.Bool("version", false, "Get PrismDNS version")
 	hideVersion := flag.Bool("hide-version", false, "Hide the version number in DNS responses")
 	serverId := flag.String("server-id", "", "Server ID used in DNS responses")
 	flag.Var(&routeFlags, "route", "Route configuration in the format <domain>,<ip>[,<port>]. Can be used multiple times.")
@@ -71,7 +71,7 @@ func ParseFlags() Flags {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("Running dns-proxy version %v\n", Version)
+		fmt.Printf("Running PrismDNS version %v\n", Version)
 		os.Exit(0)
 	}
 
