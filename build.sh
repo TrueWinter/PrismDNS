@@ -3,9 +3,15 @@
 rm -r dist 2&>/dev/null
 
 COMMIT=$(git rev-parse --short HEAD)
+
+TAG=$(git describe --tags --abbrev=0 --candidates=100 2>/dev/null)
+if [[ "$TAG" != "" ]]; then
+  COMMIT="${TAG}-${COMMIT}"
+fi
+
 UNRESOLVED=$(git status -s)
-if [ "$UNRESOLVED" != "" ]; then
-    COMMIT="${COMMIT}-indev"
+if [[ "$UNRESOLVED" != "" ]]; then
+  COMMIT="${COMMIT}-indev"
 fi
 
 build() {
