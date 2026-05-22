@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"codeberg.org/miekg/dns"
-	"codeberg.org/miekg/dns/rdata"
 )
 
 type DnsHandler struct {
@@ -52,48 +51,6 @@ func (h *DnsHandler) shouldRateLimit(domain string, addr net.Addr) bool {
 	return h.RateLimiter.ShouldRateLimit(domain, ip)
 }
 
-func (h *DnsHandler) normalizeDomain(domain string) string {
-	if domain[len(domain)-1:] == "." {
-		domain = domain[:len(domain)-1]
-	}
-	return strings.ToLower(domain)
-}
-
-func getVersionString() string {
-	s := "PrismDNS"
-	if Version != "" {
-		s = fmt.Sprintf("%v %v", s, Version)
-	}
-	return s
-}
-
-func (h *DnsHandler) getChaosResponse(r *dns.Msg) *dns.TXT {
-	queries := map[string]string{
-		"version.bind": getVersionString(),
-		"id.server": ServerId,
-	}
-
-	if t, ok := r.Question[0].(*dns.TXT); ok {
-		response, exists := queries[h.normalizeDomain(t.Hdr.Name)]
-		if exists && response != "" {
-			return &dns.TXT{
-				Hdr: dns.Header{
-					Name: t.Hdr.Name,
-					Class: dns.ClassCHAOS,
-					TTL: 3600,
-				},
-				TXT: rdata.TXT{
-					Txt: []string{
-						response,
-					},
-				},
-			}
-		}
-	}
-
-	return nil
-}
-
 func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) {
 	r.Unpack()
 	m := r.Copy()
@@ -108,7 +65,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 	}
 
 	header := questions[0].Header()
-	domain := h.normalizeDomain(header.Name)
+	domain := NormalizeDomain(header.Name)
 
 	if h.shouldRateLimit(domain, w.RemoteAddr()) && w.RemoteAddr().Network() == "udp" {
 		r.Truncated = true
