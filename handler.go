@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
 
 	"codeberg.org/miekg/dns"
 )
 
 type DnsHandler struct {
-	Routes []Route
-	Debug bool
 	RateLimiter *RateLimiter
+	Router *Router
 	dns.Handler
 	Response
 }
@@ -21,24 +19,6 @@ type DnsHandler struct {
 type QueryResult struct {
 	response *dns.Msg
 	err error
-}
-
-func (h *DnsHandler) getMatchingRoute(domain string) *Route {
-	var bestMatch *Route
-
-	for _, route := range h.Routes {
-		if route.Domain == domain {
-			return &route
-		}
-	
-		if strings.HasSuffix(domain, route.Domain) {
-			if bestMatch == nil || len(route.Domain) > len(bestMatch.Domain) {
-				bestMatch = &route
-			}
-		}
-	}
-
-	return bestMatch
 }
 
 func (h *DnsHandler) shouldRateLimit(domain string, addr net.Addr) bool {
@@ -57,7 +37,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 
 	questions := r.Question
 	if len(questions) == 0 {
-		if h.Debug {
+		if Debug {
 			fmt.Printf("Received invalid request with ID %v: no questions\n", r.ID)
 		}
 		h.respondWithRcode(dns.RcodeServerFailure, m, w)
@@ -82,10 +62,10 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 		}
 	}
 
-	route := h.getMatchingRoute(domain)
+	route := h.Router.getRoute(domain)
 	if route != nil {
-		if h.Debug {
-			fmt.Printf("Making DNS request to %v:%v for domain %v\n", route.Ip, route.Port, route.Domain)
+		if Debug {
+			fmt.Printf("Making DNS request to %v:%v for domain %v\n", route.Ip, route.Port, domain)
 		}
 
 		ch := make(chan QueryResult, 1)
@@ -100,7 +80,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 		result := <- ch
 
 		if result.err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to query upstream for %s: %v\n", route.Domain, result.err)
+			fmt.Fprintf(os.Stderr, "Failed to query upstream for %s: %v\n", domain, result.err)
 			h.respondWithRcode(dns.RcodeServerFailure, m, w)
 			return
 		}
@@ -112,7 +92,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 		return
 	}
 
-	if h.Debug {
+	if Debug {
 		fmt.Printf("Returned NXDOMAIN for domain %v\n", domain)
 	}
 	

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"codeberg.org/miekg/dns"
@@ -13,20 +12,21 @@ import (
 type Server struct {
 	Host string
 	Port int
-	Routes []Route
+	Router *Router
 	Debug bool
 	UpstreamReadTimeout int
 	UpstreamWriteTimeout int
 	ClientReadTimeout int
 	ClientIdleTimeout int
 	RateLimiter *RateLimiter
+	HttpServer *HttpServer
 }
 
 var udpServer *dns.Server
 var tcpServer *dns.Server
 
 func (s *Server) resolveAddr() string {
-	return s.Host + ":" + strconv.Itoa(s.Port);
+	return FormatAddr(s.Host, s.Port)
 }
 
 func (s *Server) serve(server *dns.Server) {
@@ -43,8 +43,7 @@ func (s *Server) newServer(net string) *dns.Server {
 		ReadTimeout: time.Duration(s.ClientReadTimeout) * time.Second,
 		IdleTimeout: time.Duration(s.ClientIdleTimeout) * time.Second,
 		Handler: &DnsHandler{
-			Routes: s.Routes,
-			Debug: s.Debug,
+			Router: s.Router,
 			RateLimiter: s.RateLimiter,
 		},
 	}
@@ -54,9 +53,16 @@ func (s *Server) Start() {
 	udpServer = s.newServer("udp")
 	tcpServer = s.newServer("tcp")
 
+	addr := s.resolveAddr()
+	fmt.Printf("Starting DNS server on %v\n", addr)
 	go s.serve(udpServer)
 	go s.serve(tcpServer)
-	fmt.Printf("Listening on %v\n", s.resolveAddr())
+	fmt.Printf("DNS server listening on %v\n", addr)
+
+	httpAddr := FormatAddr(s.HttpServer.Host, s.HttpServer.Port)
+	fmt.Printf("Starting HTTP server on %v\n", httpAddr)
+	go s.HttpServer.Start()
+	fmt.Printf("HTTP server listening on %v\n", httpAddr)
 }
 
 func (s *Server) Stop() {

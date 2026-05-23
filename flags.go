@@ -19,6 +19,12 @@ func (r *RouteFlags) Set(value string) error {
 	return nil
 }
 
+type ParsedRouteFlag struct {
+	Domain string
+	Ip string
+	Port int
+}
+
 type DomainRateLimitFlags []string
 
 func (d *DomainRateLimitFlags) String() string {
@@ -33,7 +39,9 @@ func (d *DomainRateLimitFlags) Set(value string) error {
 type Flags struct {
 	Host string
 	Port int
-	Routes []Route
+	HttpHost string
+	HttpPort int
+	ParsedRoutes []ParsedRouteFlag
 	Fallback string
 	RateLimit int
 	RateLimitWindow int
@@ -53,6 +61,8 @@ func ParseFlags() Flags {
 	var domainRateLimitFlags DomainRateLimitFlags
 	host := flag.String("host", "0.0.0.0", "Address that PrismDNS runs on")
 	port := flag.Int("port", 53, "Port that PrismDNS runs on")
+	httpHost := flag.String("http-host", "0.0.0.0", "Address that PrismDNS HTTP API runs on")
+	httpPort := flag.Int("http-port", 8053, "Port that PrismDNS HTTP API runs on")
 	upstreamReadTimeout := flag.Int("upstream-read-timeout", 2, "Read timeout for upstream DNS requests")
 	upstreamWriteTimeout := flag.Int("upstream-write-timeout", 8, "Write timeout for upstream DNS requests")
 	clientReadTimeout := flag.Int("client-read-timeout", 2, "Read timeout for client DNS requests")
@@ -86,7 +96,7 @@ func ParseFlags() Flags {
 		routeFlags = append(routeFlags, fmt.Sprintf("%v,%v:%v", FALLBACK_ROUTE_DOMAIN, ip, port))
 	}
 
-	routes := []Route{}
+	routes := []ParsedRouteFlag{}
 
 	for _, route := range routeFlags {
 		parts := strings.Split(route, ",")
@@ -111,33 +121,21 @@ func ParseFlags() Flags {
 			os.Exit(1)
 		}
 
-		if domain == FALLBACK_ROUTE_DOMAIN {
-			domain = ""
-		}
-
-		routes = append(routes, Route{
+		routes = append(routes, ParsedRouteFlag{
 			Domain: domain,
 			Ip: ip,
 			Port: port,
-			UpstreamReadTimeout: *upstreamReadTimeout,
-			UpstreamWriteTimeout: *upstreamWriteTimeout,
-			Debug: *debug,
+
 		})
 	}
 
 	if len(routes) == 0 {
-		fmt.Fprintln(os.Stderr, "Error: No routes configured. Please use -route flag with at least one route configuration.")
-		flag.Usage()
-		os.Exit(1)
+		fmt.Printf("No routes configured. Please use -route flag with at least one route configuration or add routes through the HTTP API.")
 	}
 
 	fmt.Println("Configured routes:")
 	for _, route := range routes {
-		domain := route.Domain
-		if domain == "" {
-			domain = FALLBACK_ROUTE_DOMAIN
-		}
-		fmt.Printf("  - %v -> %v:%v\n", domain, route.Ip, route.Port)
+		fmt.Printf("  - %v -> %v:%v\n", route.Domain, route.Ip, route.Port)
 	}
 
 	domainRateLimits := make(map[string]int)
@@ -161,7 +159,9 @@ func ParseFlags() Flags {
 	return Flags{
 		Host: *host,
 		Port: *port,
-		Routes: routes,
+		HttpHost: *httpHost,
+		HttpPort: *httpPort,
+		ParsedRoutes: routes,
 		Fallback: *fallback,
 		UpstreamReadTimeout: *upstreamReadTimeout,
 		UpstreamWriteTimeout: *upstreamWriteTimeout,

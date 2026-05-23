@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -23,3 +24,6 @@ func ParseHostPort(hostport string) (string, int) {
 	return hostport, 53
 }
 
+func FormatAddr(host string, port int) string {
+	return fmt.Sprintf("%v:%v", host, port)
+}
