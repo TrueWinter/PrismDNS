@@ -23,10 +23,11 @@ type Router struct {
 	RouteMu sync.RWMutex
 	UpstreamReadTimeout int
 	UpstreamWriteTimeout int
+	HealthCheck *HealthCheckManager
 }
 
 func (r *Route) resolveAddr() string {
-	return FormatAddr(r.Ip, r.Port);
+	return FormatAddr(r.Ip, r.Port)
 }
 
 func (r *Router) getRouteStrict(domain string) *Route {
@@ -104,6 +105,11 @@ func (r *Router) DeleteRoute(domain string) error {
 	if route == nil {
 		return errors.New("Route does not exist")
 	}
+
+	if r.HealthCheck != nil {
+		r.HealthCheck.DeleteStatus(domain)
+	}
+	
 	delete(r.Routes, domain)
 	return nil
 }
@@ -116,15 +122,14 @@ func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
 	upstream := dns.NewClient()
 	upstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
 	upstream.WriteTimeout = time.Duration(r.UpstreamWriteTimeout) * time.Second
-	
-	response, _, err := upstream.Exchange(context.TODO(), m, "udp", r.resolveAddr())
 
+	response, _, err := upstream.Exchange(context.TODO(), m, "udp", r.resolveAddr())
 	if response == nil || response.Truncated {
 		if Debug {
 			if response == nil {
-				fmt.Printf("UDP connection to %v failed, retrying over TCP\n", r.resolveAddr())
+				fmt.Printf("UDP connection to %v failed, retrying over TCP: %v\n", r.resolveAddr(), err)
 			} else {
-				fmt.Printf("UDP response to %v truncated, retrying over TCP\n", r.resolveAddr())
+				fmt.Printf("UDP response to %v truncated, retrying over TCP: %v\n", r.resolveAddr(), err)
 			}
 		}
 

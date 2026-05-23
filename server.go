@@ -20,6 +20,7 @@ type Server struct {
 	ClientIdleTimeout int
 	RateLimiter *RateLimiter
 	HttpServer *HttpServer
+	HealthCheck *HealthCheckManager
 }
 
 var udpServer *dns.Server
@@ -63,6 +64,11 @@ func (s *Server) Start() {
 	fmt.Printf("Starting HTTP server on %v\n", httpAddr)
 	go s.HttpServer.Start()
 	fmt.Printf("HTTP server listening on %v\n", httpAddr)
+
+	s.HealthCheck = NewHealthCheckManager(s.Router)
+	s.HttpServer.HealthCheck = s.HealthCheck
+	s.Router.HealthCheck = s.HealthCheck
+	go s.HealthCheck.Start()
 }
 
 func (s *Server) Stop() {
