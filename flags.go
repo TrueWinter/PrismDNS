@@ -36,11 +36,20 @@ func (d *DomainRateLimitFlags) Set(value string) error {
 	return nil
 }
 
+func getApiKeyFromFile(file string) (string, error) {
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
 type Flags struct {
 	Host string
 	Port int
 	HttpHost string
 	HttpPort int
+	HttpApiKey string
 	ParsedRoutes []ParsedRouteFlag
 	Fallback string
 	RateLimit int
@@ -63,6 +72,8 @@ func ParseFlags() Flags {
 	port := flag.Int("port", 53, "Port that PrismDNS runs on")
 	httpHost := flag.String("http-host", "0.0.0.0", "Address that PrismDNS HTTP API runs on")
 	httpPort := flag.Int("http-port", 8053, "Port that PrismDNS HTTP API runs on")
+	httpApiKey := flag.String("http-api-key", "", "API key for PrismDNS HTTP API")
+	httpApiKeyFile := flag.String("http-api-key-file", "", "API key file for PrismDNS HTTP API")
 	upstreamReadTimeout := flag.Int("upstream-read-timeout", 2, "Read timeout for upstream DNS requests")
 	upstreamWriteTimeout := flag.Int("upstream-write-timeout", 8, "Write timeout for upstream DNS requests")
 	clientReadTimeout := flag.Int("client-read-timeout", 2, "Read timeout for client DNS requests")
@@ -83,6 +94,21 @@ func ParseFlags() Flags {
 	if *version {
 		fmt.Printf("Running PrismDNS version %v\n", Version)
 		os.Exit(0)
+	}
+
+	if *httpApiKey != "" && *httpApiKeyFile != "" {
+		fmt.Fprintln(os.Stderr, "Cannot set both http-api-key and http-api-key-file")
+		flag.Usage()
+		os.Exit(1)
+	}
+	if *httpApiKeyFile != "" {
+		httpApiKeyFileData, err := getApiKeyFromFile(*httpApiKeyFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to read API key from file: %v\n", err)
+			flag.Usage()
+			os.Exit(1)
+		}
+		*httpApiKey = httpApiKeyFileData
 	}
 
 	if *fallback != "" {
@@ -161,6 +187,7 @@ func ParseFlags() Flags {
 		Port: *port,
 		HttpHost: *httpHost,
 		HttpPort: *httpPort,
+		HttpApiKey: *httpApiKey,
 		ParsedRoutes: routes,
 		Fallback: *fallback,
 		UpstreamReadTimeout: *upstreamReadTimeout,

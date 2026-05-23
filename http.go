@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,6 +12,7 @@ import (
 type HttpServer struct {
 	Host string
 	Port int
+	ApiKey string
 	Router *Router
 }
 
@@ -58,11 +61,27 @@ func writeSuccess(w http.ResponseWriter) {
 }
 
 type MiddlewareRouter struct {
+	apiKey string
 	next http.Handler
 }
 
 func (m *MiddlewareRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
+
+	serverApiKey := m.apiKey
+	userApiKey := r.Header.Get("X-Api-Key")
+	if serverApiKey != "" {
+		serverApiKeyHash := sha256.Sum256([]byte(serverApiKey))
+    userApiKeyHash := sha256.Sum256([]byte(userApiKey))
+    if userApiKey == "" || subtle.ConstantTimeCompare(serverApiKeyHash[:], userApiKeyHash[:]) == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(HttpError{
+				Error: "Unautorized",
+			})
+			return
+		}
+	}
+
 	m.next.ServeHTTP(w, r)
 }
 
@@ -73,6 +92,7 @@ func (h *HttpServer) Start() {
 	server = &http.Server{
 		Addr: FormatAddr(h.Host, h.Port),
 		Handler: &MiddlewareRouter{
+			apiKey: h.ApiKey,
 			next: router,
 		},
 	}

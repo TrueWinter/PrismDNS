@@ -31,6 +31,7 @@ func main() {
 	httpServer := &HttpServer{
 		Host: flags.HttpHost,
 		Port: flags.HttpPort,
+		ApiKey: flags.HttpApiKey,
 		Router: router,
 	}
 
