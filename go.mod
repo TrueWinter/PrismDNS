@@ -1,4 +1,4 @@
-module github.com/TrueWinter/dns-proxy
+module github.com/TrueWinter/PrismDNS
 
 go 1.25.0
 
