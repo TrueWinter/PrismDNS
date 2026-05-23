@@ -20,7 +20,7 @@ type Route struct {
 
 type Router struct {
 	Routes map[string]*Route
-	RouteMu sync.Mutex
+	RouteMu sync.RWMutex
 	UpstreamReadTimeout int
 	UpstreamWriteTimeout int
 }
@@ -31,8 +31,8 @@ func (r *Route) resolveAddr() string {
 
 func (r *Router) getRouteStrict(domain string) *Route {
 	// If the mutex is already locked, don't try to relock it
-	if r.RouteMu.TryLock() {
-		defer r.RouteMu.Unlock()
+	if r.RouteMu.TryRLock() {
+		defer r.RouteMu.RUnlock()
 	}
 	route, exists := r.Routes[domain]
 	if !exists {
@@ -42,8 +42,8 @@ func (r *Router) getRouteStrict(domain string) *Route {
 }
 
 func (r *Router) getRoute(domain string) *Route {
-	r.RouteMu.Lock()
-	defer r.RouteMu.Unlock()
+	r.RouteMu.RLock()
+	defer r.RouteMu.RUnlock()
 	var bestMatch string
 	fallback, fallbackExists := r.Routes[FALLBACK_ROUTE_DOMAIN]
 
