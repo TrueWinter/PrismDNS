@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"codeberg.org/miekg/dns"
@@ -19,6 +20,7 @@ type Route struct {
 
 type Router struct {
 	Routes map[string]*Route
+	RouteMu sync.Mutex
 	UpstreamReadTimeout int
 	UpstreamWriteTimeout int
 }
@@ -28,6 +30,10 @@ func (r *Route) resolveAddr() string {
 }
 
 func (r *Router) getRouteStrict(domain string) *Route {
+	// If the mutex is already locked, don't try to relock it
+	if r.RouteMu.TryLock() {
+		defer r.RouteMu.Unlock()
+	}
 	route, exists := r.Routes[domain]
 	if !exists {
 		return nil
@@ -36,6 +42,8 @@ func (r *Router) getRouteStrict(domain string) *Route {
 }
 
 func (r *Router) getRoute(domain string) *Route {
+	r.RouteMu.Lock()
+	defer r.RouteMu.Unlock()
 	var bestMatch string
 	fallback, fallbackExists := r.Routes[FALLBACK_ROUTE_DOMAIN]
 
@@ -62,6 +70,8 @@ func (r *Router) getRoute(domain string) *Route {
 }
 
 func (r *Router) AddRoute(domain string, ip string, port int) error {
+	r.RouteMu.Lock()
+	defer r.RouteMu.Unlock()
 	existingRoute := r.getRouteStrict(domain)
 	if existingRoute != nil {
 		fmt.Println(existingRoute)
@@ -77,6 +87,8 @@ func (r *Router) AddRoute(domain string, ip string, port int) error {
 }
 
 func (r *Router) ModifyRoute(domain string, ip string, port int) error {
+	r.RouteMu.Lock()
+	defer r.RouteMu.Unlock()
 	route := r.getRouteStrict(domain)
 	if route == nil {
 		return errors.New("Route does not exist")
@@ -87,6 +99,8 @@ func (r *Router) ModifyRoute(domain string, ip string, port int) error {
 }
 
 func (r *Router) DeleteRoute(domain string) error {
+	r.RouteMu.Lock()
+	defer r.RouteMu.Unlock()
 	route := r.getRouteStrict(domain)
 	if route == nil {
 		return errors.New("Route does not exist")
