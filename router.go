@@ -74,7 +74,6 @@ func (r *Router) AddRoute(domain string, ip string, port int) error {
 	defer r.RouteMu.Unlock()
 	existingRoute := r.getRouteStrict(domain)
 	if existingRoute != nil {
-		fmt.Println(existingRoute)
 		return fmt.Errorf("Route for domain %v already exists", domain)
 	}
 	r.Routes[domain] = &Route{
