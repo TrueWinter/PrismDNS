@@ -85,10 +85,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 			return
 		}
 
-		m.Answer = result.response.Answer
-		m.Ns = result.response.Ns
-		m.Pseudo = result.response.Pseudo
-		h.respond(m, w)
+		h.respond(result.response, w)
 		return
 	}
 
