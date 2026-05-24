@@ -1,6 +1,7 @@
 package main
 
 import (
+	"slices"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/json"
@@ -53,20 +54,30 @@ type MiddlewareRouter struct {
 	next http.Handler
 }
 
+
+func (m *MiddlewareRouter) shouldBypassAuth(method string, path string) bool {
+	authBypassRoutes := []string{
+		"GET /healthcheck",
+	}
+	return slices.Contains(authBypassRoutes, fmt.Sprintf("%v %v", method, path))
+}
+
 func (m *MiddlewareRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
-	serverApiKey := m.apiKey
-	userApiKey := r.Header.Get("X-Api-Key")
-	if serverApiKey != "" {
-		serverApiKeyHash := sha256.Sum256([]byte(serverApiKey))
-		userApiKeyHash := sha256.Sum256([]byte(userApiKey))
-		if userApiKey == "" || subtle.ConstantTimeCompare(serverApiKeyHash[:], userApiKeyHash[:]) == 0 {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(HttpError{
-				Error: "Unautorized",
-			})
-			return
+	if !m.shouldBypassAuth(r.Method, r.URL.Path) {
+		serverApiKey := m.apiKey
+		userApiKey := r.Header.Get("X-Api-Key")
+		if serverApiKey != "" {
+			serverApiKeyHash := sha256.Sum256([]byte(serverApiKey))
+			userApiKeyHash := sha256.Sum256([]byte(userApiKey))
+			if userApiKey == "" || subtle.ConstantTimeCompare(serverApiKeyHash[:], userApiKeyHash[:]) == 0 {
+				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(HttpError{
+					Error: "Unautorized",
+				})
+				return
+			}
 		}
 	}
 
