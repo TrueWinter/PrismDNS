@@ -1,6 +1,6 @@
 FROM golang:1.26.3-alpine3.22 AS build
 
-RUN apk add bash
+RUN apk add bash git
 
 WORKDIR /app
 
