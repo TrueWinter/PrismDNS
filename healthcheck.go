@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 
@@ -79,14 +80,18 @@ func (h *HealthCheckManager) PerformHealthCheck(info RouteInfo) error {
 	if info.Route == nil {
 		return nil
 	}
-	response, err := info.Route.Query(m)
+	_, err := info.Route.Query(m)
 
 	var status HealthCheckStatus
-	if err != nil || response == nil {
+	if err != nil {
 		status = HealthCheckStatus{
 			LastErr:  err.Error(),
 			IsHealthy: false,
 		}
+		fmt.Fprintf(
+			os.Stderr, "Healthcheck failed for %v (%v:%v): %v",
+			info.Domain, info.Route, info.Route.Ip, err.Error(),
+		)
 	} else {
 		status = HealthCheckStatus{
 			IsHealthy: true,
