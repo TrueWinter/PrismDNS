@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Set by build script
@@ -23,25 +25,29 @@ func main() {
 	}
 
 	router := &Router{
-		Routes: make(map[string]*Route),
+		Routes:             make(map[string]*Route),
 		UpstreamReadTimeout: flags.UpstreamReadTimeout,
 		UpstreamWriteTimeout: flags.UpstreamWriteTimeout,
 	}
 
+	metricsRegistry := prometheus.NewRegistry()
+	RegisterMetrics()
+
 	httpServer := &HttpServer{
-		Host: flags.HttpHost,
-		Port: flags.HttpPort,
-		ApiKey: flags.HttpApiKey,
-		Router: router,
+		Host:         flags.HttpHost,
+		Port:         flags.HttpPort,
+		ApiKey:       flags.HttpApiKey,
+		Router:       router,
+		MetricsRegistry: metricsRegistry,
 	}
 
 	server := Server{
-		Host: flags.Host,
-		Port: flags.Port,
-		HttpServer: httpServer,
-		Router: router,
-		ClientReadTimeout: flags.ClientReadTimeout,
-		ClientIdleTimeout: flags.ClientIdleTimeout,
+		Host:         flags.Host,
+		Port:         flags.Port,
+		HttpServer:   httpServer,
+		Router:       router,
+		ClientReadTimeout:   flags.ClientReadTimeout,
+		ClientIdleTimeout:   flags.ClientIdleTimeout,
 		RateLimiter: NewRateLimiter(
 			flags.RateLimit,
 			flags.RateLimitWindow,

@@ -11,8 +11,10 @@ import (
 )
 
 type HealthCheckStatus struct {
+	Ip string
+	Port int
 	LastCheck time.Time
-	LastErr string
+	LastErr   string
 	IsHealthy bool
 }
 
@@ -34,11 +36,21 @@ func NewHealthCheckManager(router *Router) *HealthCheckManager {
 	}
 }
 
+func (h *HealthCheckManager) CopyStatus(status *HealthCheckStatus) *HealthCheckStatus {
+	return &HealthCheckStatus{
+		Ip: status.Ip,
+		Port: status.Port,
+		LastCheck: status.LastCheck,
+		LastErr:   status.LastErr,
+		IsHealthy: status.IsHealthy,
+	}
+}
+
 func (h *HealthCheckManager) GetStatus(domain string) *HealthCheckStatus {
 	h.statusMu.RLock()
 	defer h.statusMu.RUnlock()
 	if status, ok := h.status[domain]; ok {
-		return status
+		return h.CopyStatus(status)
 	}
 	return &HealthCheckStatus{
 		LastCheck: time.Time{},
@@ -47,7 +59,14 @@ func (h *HealthCheckManager) GetStatus(domain string) *HealthCheckStatus {
 }
 
 func (h *HealthCheckManager) GetAllStatuses() map[string]*HealthCheckStatus {
-	return h.status
+	h.statusMu.RLock()
+	defer h.statusMu.RUnlock()
+	
+	result := make(map[string]*HealthCheckStatus, len(h.status))
+	for domain, status := range h.status {
+		result[domain] = h.CopyStatus(status)
+	}
+	return result
 }
 
 func (h *HealthCheckManager) DeleteStatus(domain string) {
@@ -76,38 +95,34 @@ func (h *HealthCheckManager) PerformHealthCheck(info RouteInfo) error {
 		},
 	}
 
-	// Handle edge case if route is deleted before healthcheck finishes
 	if info.Route == nil {
 		return nil
 	}
 	_, err := info.Route.Query(m)
 
-	var status HealthCheckStatus
+	status := HealthCheckStatus{
+		Ip: info.Route.Ip,
+		Port: info.Route.Port,
+		LastCheck: time.Now(),
+	}
+
 	if err != nil {
-		status = HealthCheckStatus{
-			LastErr:  err.Error(),
-			IsHealthy: false,
-		}
+		status.LastErr = err.Error()
+		status.IsHealthy = false
+		prismdnsUpstreamHealth.WithLabelValues(status.Ip).Set(0)
 		fmt.Fprintf(
 			os.Stderr, "Healthcheck failed for %v (%v:%v): %v\n",
 			info.Domain, info.Route.Ip, info.Route.Port, err.Error(),
 		)
 	} else {
-		status = HealthCheckStatus{
-			IsHealthy: true,
-			LastErr:   "",
-		}
-	}
-
-	// Handle edge case if route is deleted before healthcheck finishes
-	if info.Route == nil {
-		return nil
+		status.LastErr = ""
+		status.IsHealthy = true
+		prismdnsUpstreamHealth.WithLabelValues(status.Ip).Set(1)
 	}
 
 	h.statusMu.Lock()
 	defer h.statusMu.Unlock()
 
-	status.LastCheck = time.Now()
 	h.status[info.Domain] = &status
 
 	if Debug {
@@ -138,7 +153,7 @@ func (h *HealthCheckManager) getRoutes() []RouteInfo {
 	for domain, route := range h.router.Routes {
 		routes = append(routes, RouteInfo{
 			Domain: domain,
-			Route: route,
+			Route:  route,
 		})
 	}
 	return routes

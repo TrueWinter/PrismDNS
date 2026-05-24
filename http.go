@@ -1,21 +1,24 @@
 package main
 
 import (
-	"slices"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type HttpServer struct {
-	Host string
-	Port int
-	ApiKey string
-	Router *Router
-	HealthCheck *HealthCheckManager
+	Host             string
+	Port             int
+	ApiKey           string
+	Router           *Router
+	HealthCheck      *HealthCheckManager
+	MetricsRegistry  *prometheus.Registry
 }
 
 type HttpError struct {
@@ -24,8 +27,8 @@ type HttpError struct {
 
 type HttpRouteObject struct {
 	Domain string
-	Ip string
-	Port int
+	Ip     string
+	Port   int
 }
 
 type HttpModifyRouteObject struct {
@@ -44,14 +47,14 @@ type HttpSuccessObject struct {
 func convertRouteToHttpRouteObject(domain string, route Route) HttpRouteObject {
 	return HttpRouteObject{
 		Domain: domain,
-		Ip: route.Ip,
-		Port: route.Port,
+		Ip:     route.Ip,
+		Port:   route.Port,
 	}
 }
 
 type MiddlewareRouter struct {
 	apiKey string
-	next http.Handler
+	next   http.Handler
 }
 
 
@@ -89,10 +92,10 @@ var server *http.Server
 func (h *HttpServer) Start() {
 	router := http.NewServeMux()
 	server = &http.Server{
-		Addr: FormatAddr(h.Host, h.Port),
+		Addr:     FormatAddr(h.Host, h.Port),
 		Handler: &MiddlewareRouter{
 			apiKey: h.ApiKey,
-			next: router,
+			next:   router,
 		},
 	}
 
@@ -221,6 +224,8 @@ func (h *HttpServer) Start() {
 		json.NewEncoder(w).Encode(result)
 	})
 
+	router.Handle("/metrics", GetMetricsHandler())
+
 	err := server.ListenAndServe()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start HTTP server: %v\n", err)
@@ -229,6 +234,8 @@ func (h *HttpServer) Start() {
 
 type HealthCheckRouteResult struct {
 	Domain string
+	Ip string
+	Port int
 	Health HealthCheckData
 }
 
@@ -256,19 +263,23 @@ func formatHealthCheckStatus(domain string, status *HealthCheckStatus) HealthChe
 	var result HealthCheckRouteResult
 	if status == nil || status.LastCheck.IsZero() {
 		result = HealthCheckRouteResult{
-			Domain: domain,
+			Domain:    domain,
+			Ip: status.Ip,
+			Port: status.Port,
 			Health: HealthCheckData{
-				Ok: true,
-				Error: status.LastErr,
+				Ok:       true,
+				Error:    status.LastErr,
 				LastCheck: 0,
 			},
 		}
 	} else {
 		result = HealthCheckRouteResult{
 			Domain: domain,
+			Ip: status.Ip,
+			Port: status.Port,
 			Health: HealthCheckData{
-				Ok: status.IsHealthy,
-				Error: status.LastErr,
+				Ok:      status.IsHealthy,
+				Error:   status.LastErr,
 				LastCheck: status.LastCheck.UTC().Unix(),
 			},
 		}

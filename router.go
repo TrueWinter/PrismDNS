@@ -12,18 +12,18 @@ import (
 )
 
 type Route struct {
-	Ip string
-	Port int
-	UpstreamReadTimeout int
+	Ip              string
+	Port            int
+	UpstreamReadTimeout  int
 	UpstreamWriteTimeout int
 }
 
 type Router struct {
-	Routes map[string]*Route
-	RouteMu sync.RWMutex
-	UpstreamReadTimeout int
-	UpstreamWriteTimeout int
-	HealthCheck *HealthCheckManager
+	Routes                map[string]*Route
+	RouteMu               sync.RWMutex
+	UpstreamReadTimeout   int
+	UpstreamWriteTimeout  int
+	HealthCheck           *HealthCheckManager
 }
 
 func (r *Route) resolveAddr() string {
@@ -78,9 +78,9 @@ func (r *Router) AddRoute(domain string, ip string, port int) error {
 		return fmt.Errorf("Route for domain %v already exists", domain)
 	}
 	r.Routes[domain] = &Route{
-		Ip: ip,
-		Port: port,
-		UpstreamReadTimeout: r.UpstreamReadTimeout,
+		Ip:               ip,
+		Port:             port,
+		UpstreamReadTimeout:  r.UpstreamReadTimeout,
 		UpstreamWriteTimeout: r.UpstreamWriteTimeout,
 	}
 	return nil
@@ -109,7 +109,7 @@ func (r *Router) DeleteRoute(domain string) error {
 	if r.HealthCheck != nil {
 		r.HealthCheck.DeleteStatus(domain)
 	}
-	
+
 	delete(r.Routes, domain)
 	return nil
 }
@@ -118,6 +118,8 @@ func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
 	m.RecursionDesired = false
 	m.Authoritative = false
 	m.Rcode = dns.RcodeSuccess
+
+	prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "udp").Inc()
 
 	upstream := dns.NewClient()
 	upstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
@@ -133,9 +135,11 @@ func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
 			}
 		}
 
+		prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "tcp").Inc()
+
 		tcpUpstream := dns.NewClient()
-		upstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
-		upstream.WriteTimeout = time.Duration(r.UpstreamWriteTimeout) * time.Second
+		tcpUpstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
+		tcpUpstream.WriteTimeout = time.Duration(r.UpstreamWriteTimeout) * time.Second
 
 		response, _, err = tcpUpstream.Exchange(context.TODO(), m, "tcp", r.resolveAddr())
 	}

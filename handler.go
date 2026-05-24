@@ -11,14 +11,14 @@ import (
 
 type DnsHandler struct {
 	RateLimiter *RateLimiter
-	Router *Router
+	Router      *Router
 	dns.Handler
 	Response
 }
 
 type QueryResult struct {
 	response *dns.Msg
-	err error
+	err      error
 }
 
 func (h *DnsHandler) shouldRateLimit(domain string, addr net.Addr) bool {
@@ -33,12 +33,15 @@ func (h *DnsHandler) shouldRateLimit(domain string, addr net.Addr) bool {
 
 func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) {
 	r.Unpack()
+	prismdnsDNSRequestsTotal.Inc()
 
 	questions := r.Question
 	if len(questions) == 0 {
 		if Debug {
 			fmt.Printf("Received invalid request with ID %v: no questions\n", r.ID)
 		}
+		h.incrementServfail("invalid_request")
+		prismdnsDNSResponsesTotal.WithLabelValues("SERVFAIL").Inc()
 		h.respondWithRcode(dns.RcodeServerFailure, r, w)
 		return
 	}
@@ -48,6 +51,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 
 	if h.shouldRateLimit(domain, w.RemoteAddr()) && w.RemoteAddr().Network() == "udp" {
 		r.Truncated = true
+		prismdnsRateLimitHitsTotal.Inc()
 		h.respond(r, w)
 		return
 	}
@@ -57,6 +61,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 		if chaosResponse != nil {
 			r.Answer = append(r.Answer, chaosResponse)
 			h.respond(r, w)
+			prismdnsDNSResponsesTotal.WithLabelValues("NOERROR").Inc()
 			return
 		}
 	}
@@ -76,21 +81,43 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 			}
 		}()
 
-		result := <- ch
+		result := <-ch
 
 		if result.err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to query upstream for %s: %v\n", domain, result.err)
+			prismdnsUpstreamResponsesTotal.WithLabelValues(route.Ip, "SERVFAIL").Inc()
+			h.incrementServfail("upstream_failure")
+			prismdnsDNSResponsesTotal.WithLabelValues("SERVFAIL").Inc()
 			h.respondWithRcode(dns.RcodeServerFailure, r, w)
-			return
+		} else {
+			rcodeStr := rcodeToString(result.response.Rcode)
+			prismdnsUpstreamResponsesTotal.WithLabelValues(route.Ip, rcodeStr).Inc()
+			h.respond(result.response, w)
+			prismdnsDNSResponsesTotal.WithLabelValues(rcodeStr).Inc()
 		}
-
-		h.respond(result.response, w)
 		return
 	}
 
 	if Debug {
 		fmt.Printf("Returned NXDOMAIN for domain %v\n", domain)
 	}
-	
+	prismdnsNXDOMAINTotal.Inc()
+	prismdnsDNSResponsesTotal.WithLabelValues("NXDOMAIN").Inc()
 	h.respondWithRcode(dns.RcodeNameError, r, w)
+}
+
+func (h *DnsHandler) incrementServfail(cause string) {
+	prismdnsServfailTotal.WithLabelValues(cause).Inc()
+}
+
+func rcodeToString(rcode uint16) string {
+	switch rcode {
+	case dns.RcodeSuccess:
+		return "NOERROR"
+	case dns.RcodeNameError:
+		return "NXDOMAIN"
+	case dns.RcodeServerFailure:
+		return "SERVFAIL"
+	default:
+		return "NOERROR"
+	}
 }
