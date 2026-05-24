@@ -67,6 +67,14 @@ var (
 		},
 		[]string{"upstream"},
 	)
+
+	prismdnsUpstreamLatency = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "prismdns_upstream_latency",
+			Help: "Latency of upstream servers",
+		},
+		[]string{"upstream"},
+	)
 )
 
 func RegisterMetrics() {
@@ -79,6 +87,7 @@ func RegisterMetrics() {
 		prismdnsServfailTotal,
 		prismdnsRateLimitHitsTotal,
 		prismdnsUpstreamHealth,
+		prismdnsUpstreamLatency,
 	)
 }
 

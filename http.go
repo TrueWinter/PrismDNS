@@ -248,6 +248,7 @@ type HealthCheckData struct {
 	Ok bool
 	Error string
 	LastCheck int64
+	LastCheckLatency float64
 }
 
 func writeError(error string, code int, w http.ResponseWriter) {
@@ -265,29 +266,22 @@ func writeSuccess(w http.ResponseWriter) {
 
 
 func formatHealthCheckStatus(domain string, status *HealthCheckStatus) HealthCheckRouteResult {
-	var result HealthCheckRouteResult
-	if status == nil || status.LastCheck.IsZero() {
-		result = HealthCheckRouteResult{
-			Domain:    domain,
-			Ip: status.Ip,
-			Port: status.Port,
-			Health: HealthCheckData{
-				Ok:       true,
-				Error:    status.LastErr,
-				LastCheck: 0,
-			},
-		}
-	} else {
-		result = HealthCheckRouteResult{
-			Domain: domain,
-			Ip: status.Ip,
-			Port: status.Port,
-			Health: HealthCheckData{
-				Ok:      status.IsHealthy,
-				Error:   status.LastErr,
-				LastCheck: status.LastCheck.UTC().Unix(),
-			},
-		}
+	result := HealthCheckRouteResult{
+		Domain: domain,
+		Health: HealthCheckData{
+			Ok: true,
+			LastCheck: 0,
+			LastCheckLatency: 0,
+		},
+	}
+
+	if status != nil {
+		result.Ip = status.Ip
+		result.Port = status.Port
+		result.Health.Ok = status.IsHealthy
+		result.Health.Error = status.LastErr
+		result.Health.LastCheck = status.LastCheck.UTC().Unix()
+		result.Health.LastCheckLatency = status.LastCheckLatency
 	}
 
 	return result

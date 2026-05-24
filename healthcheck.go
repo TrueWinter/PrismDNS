@@ -14,6 +14,7 @@ type HealthCheckStatus struct {
 	Ip string
 	Port int
 	LastCheck time.Time
+	LastCheckLatency float64
 	LastErr   string
 	IsHealthy bool
 }
@@ -41,6 +42,7 @@ func (h *HealthCheckManager) CopyStatus(status *HealthCheckStatus) *HealthCheckS
 		Ip: status.Ip,
 		Port: status.Port,
 		LastCheck: status.LastCheck,
+		LastCheckLatency: status.LastCheckLatency,
 		LastErr:   status.LastErr,
 		IsHealthy: status.IsHealthy,
 	}
@@ -98,18 +100,21 @@ func (h *HealthCheckManager) PerformHealthCheck(info RouteInfo) error {
 	if info.Route == nil {
 		return nil
 	}
+	start := time.Now()
 	_, err := info.Route.Query(m)
 
 	status := HealthCheckStatus{
 		Ip: info.Route.Ip,
 		Port: info.Route.Port,
 		LastCheck: time.Now(),
+		LastCheckLatency: float64(time.Since(start).Microseconds()) / 1000,
 	}
+	prismdnsUpstreamLatency.WithLabelValues(FormatAddr(status.Ip, status.Port)).Set(float64(status.LastCheckLatency))
 
 	if err != nil {
 		status.LastErr = err.Error()
 		status.IsHealthy = false
-		prismdnsUpstreamHealth.WithLabelValues(status.Ip).Set(0)
+		prismdnsUpstreamHealth.WithLabelValues(FormatAddr(status.Ip, status.Port)).Set(0)
 		fmt.Fprintf(
 			os.Stderr, "Healthcheck failed for %v (%v:%v): %v\n",
 			info.Domain, info.Route.Ip, info.Route.Port, err.Error(),
@@ -117,7 +122,7 @@ func (h *HealthCheckManager) PerformHealthCheck(info RouteInfo) error {
 	} else {
 		status.LastErr = ""
 		status.IsHealthy = true
-		prismdnsUpstreamHealth.WithLabelValues(status.Ip).Set(1)
+		prismdnsUpstreamHealth.WithLabelValues(FormatAddr(status.Ip, status.Port)).Set(1)
 	}
 
 	h.statusMu.Lock()
