@@ -89,8 +89,8 @@ func (h *HealthCheckManager) PerformHealthCheck(info RouteInfo) error {
 			IsHealthy: false,
 		}
 		fmt.Fprintf(
-			os.Stderr, "Healthcheck failed for %v (%v:%v): %v",
-			info.Domain, info.Route, info.Route.Ip, err.Error(),
+			os.Stderr, "Healthcheck failed for %v (%v:%v): %v\n",
+			info.Domain, info.Route.Ip, info.Route.Port, err.Error(),
 		)
 	} else {
 		status = HealthCheckStatus{
