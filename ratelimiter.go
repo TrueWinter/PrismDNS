@@ -59,10 +59,13 @@ func NewRateLimiter(
 		LogRateLimits: LogRateLimits,
 	}
 
-	fmt.Printf("Ratelimiter config:\nRequests: %v Window: %v\n", rl.RateLimit, rl.RateLimitWindow)
-	fmt.Printf("Ratelimit domain overrides:\n")
+	fmt.Printf(
+		"Ratelimiter config:\n  Requests: %v\n   Window: %v\n",
+		rl.RateLimit, rl.RateLimitWindow,
+	)
+	fmt.Printf("  Ratelimit domain overrides:\n")
 	for domain, limit := range rl.DomainRateLimits {
-		fmt.Printf("  - %v: %v", domain, limit)
+		fmt.Printf("    - %v: %v\n", domain, limit)
 	}
 
 	go func() {
