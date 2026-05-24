@@ -61,6 +61,7 @@ type MiddlewareRouter struct {
 func (m *MiddlewareRouter) shouldBypassAuth(method string, path string) bool {
 	authBypassRoutes := []string{
 		"GET /healthcheck",
+		"GET /metrics",
 	}
 	return slices.Contains(authBypassRoutes, fmt.Sprintf("%v %v", method, path))
 }
@@ -97,6 +98,10 @@ func (h *HttpServer) Start() {
 			apiKey: h.ApiKey,
 			next:   router,
 		},
+	}
+
+	if h.ApiKey == "" {
+		fmt.Println("API key unset, allowing unauthenticated HTTP API access")
 	}
 
 	router.HandleFunc("GET /routes", func(w http.ResponseWriter, r *http.Request) {
