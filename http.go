@@ -212,7 +212,7 @@ func (h *HttpServer) Start() {
 
 	err := server.ListenAndServe()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to start HTTP server: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed to start HTTP server: %v\n", err)
 	}
 }
 

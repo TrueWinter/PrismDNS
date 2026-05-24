@@ -74,11 +74,11 @@ func (s *Server) Start() {
 func (s *Server) Stop() {
 	fmt.Println("Stopping server")
 
-	if udpServer != nil {
+	if udpServer != nil && udpServer.PacketConn != nil {
 		udpServer.Shutdown(context.TODO())
 	}
 
-	if tcpServer != nil {
+	if tcpServer != nil && tcpServer.Listener != nil {
 		tcpServer.Shutdown(context.TODO())
 	}
 }
