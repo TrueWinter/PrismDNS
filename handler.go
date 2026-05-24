@@ -33,14 +33,13 @@ func (h *DnsHandler) shouldRateLimit(domain string, addr net.Addr) bool {
 
 func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) {
 	r.Unpack()
-	m := r.Copy()
 
 	questions := r.Question
 	if len(questions) == 0 {
 		if Debug {
 			fmt.Printf("Received invalid request with ID %v: no questions\n", r.ID)
 		}
-		h.respondWithRcode(dns.RcodeServerFailure, m, w)
+		h.respondWithRcode(dns.RcodeServerFailure, r, w)
 		return
 	}
 
@@ -56,8 +55,8 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 	if header.Class == dns.ClassCHAOS {
 		chaosResponse := h.getChaosResponse(r)
 		if chaosResponse != nil {
-			m.Answer = append(r.Answer, chaosResponse)
-			h.respond(m, w)
+			r.Answer = append(r.Answer, chaosResponse)
+			h.respond(r, w)
 			return
 		}
 	}
@@ -70,7 +69,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 
 		ch := make(chan QueryResult, 1)
 		go func() {
-			response, err := route.Query(m)
+			response, err := route.Query(r)
 			ch <- QueryResult{
 				response,
 				err,
@@ -81,7 +80,7 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 
 		if result.err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to query upstream for %s: %v\n", domain, result.err)
-			h.respondWithRcode(dns.RcodeServerFailure, m, w)
+			h.respondWithRcode(dns.RcodeServerFailure, r, w)
 			return
 		}
 
@@ -93,5 +92,5 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 		fmt.Printf("Returned NXDOMAIN for domain %v\n", domain)
 	}
 	
-	h.respondWithRcode(dns.RcodeNameError, m, w)
+	h.respondWithRcode(dns.RcodeNameError, r, w)
 }
