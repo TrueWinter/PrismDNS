@@ -59,6 +59,12 @@ func NewRateLimiter(
 		LogRateLimits: LogRateLimits,
 	}
 
+	fmt.Printf("Ratelimiter config:\nRequests: %v Window: %v\n", rl.RateLimit, rl.RateLimitWindow)
+	fmt.Printf("Ratelimit domain overrides:\n")
+	for domain, limit := range rl.DomainRateLimits {
+		fmt.Printf("  - %v: %v", domain, limit)
+	}
+
 	go func() {
 		cleanupTicker := time.NewTicker(5 * time.Minute)
 		defer cleanupTicker.Stop()
