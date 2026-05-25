@@ -102,7 +102,7 @@ Get health status of all configured routes.
 Basic health check endpoint for the HTTP API (no authentication required).
 
 ### GET `/healthcheck/routes/{route}`
-Get health status of a specific route. See GET `/healthcheck/routes`.
+Get health status of a specific route. See [GET `/healthcheck/routes`](#get-healthcheckroutes).
 
 ## Chaos Queries
 
@@ -123,7 +123,6 @@ dig @10.0.53.53 CH TXT id.server
 Build the binaries for your platform:
 
 ```bash
-cd PrismDNS
 ./build.sh
 ```
 
