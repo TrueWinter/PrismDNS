@@ -19,7 +19,7 @@ build() {
   if [ "$GOOS" == "windows" ]; then
     DIST_NAME=$DIST_NAME.exe
   fi
-  go build -ldflags "-X main.Version=${COMMIT}" -o $DIST_NAME .
+  go build -ldflags "-X main.Version=${COMMIT} -s" -o $DIST_NAME .
 }
 
 GOOS=windows GOARCH=amd64 build
