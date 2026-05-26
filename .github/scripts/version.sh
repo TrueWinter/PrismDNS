@@ -16,9 +16,4 @@ else
   VERSION="$COMMIT"
 fi
 
-UNRESOLVED=$(git status -s)
-if [[ "$UNRESOLVED" != "" ]]; then
-  VERSION="$VERSION-indev"
-fi
-
 echo $VERSION

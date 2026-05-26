@@ -2,7 +2,8 @@ name: Publish commit
 
 on:
   push:
-    branches: [main]
+    tags:
+      - "v*.*.*"
 
 jobs:
   prepare-build:
@@ -20,7 +21,31 @@ jobs:
           VERSION=$(./.github/scripts/version.sh)
           echo "version=truewinter/prismdns:$VERSION" >> $GITHUB_OUTPUT
 
-  build-and-release:
+  build-and-release-github:
+    runs-on: ubuntu-latest
+    needs: prepare-build
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Make the script files executable
+        run: chmod +x ./build.sh ./.github/scripts/version.sh ./.github/scripts/commit-log.sh
+      - name: Build
+        run: ./build.sh
+      - name: Get commit log
+        run: ./.github/scripts/commit-log.sh > commits.log
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*
+          body_path: commits.log
+
+
+  build-and-release-docker:
     uses: TrueWinter/PrismDNS/.github/workflows/docker-release.yml@main
     needs: prepare-build
     with:
