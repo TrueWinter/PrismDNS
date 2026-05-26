@@ -101,7 +101,7 @@ func (h *HealthCheckManager) PerformHealthCheck(info RouteInfo) error {
 		return nil
 	}
 	start := time.Now()
-	_, err := info.Route.Query(m)
+	_, _, err := info.Route.directQuery(m)
 
 	status := HealthCheckStatus{
 		Ip: info.Route.Ip,

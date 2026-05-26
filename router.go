@@ -114,13 +114,12 @@ func (r *Router) DeleteRoute(domain string) error {
 	return nil
 }
 
-func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
+func (r *Route) directQuery(m *dns.Msg) (*dns.Msg, string, error) {
 	m.RecursionDesired = false
 	m.Authoritative = false
 	m.Rcode = dns.RcodeSuccess
 
-	prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "udp").Inc()
-
+	protocol := "udp"
 	upstream := dns.NewClient()
 	upstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
 	upstream.WriteTimeout = time.Duration(r.UpstreamWriteTimeout) * time.Second
@@ -135,8 +134,7 @@ func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
 			}
 		}
 
-		prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "tcp").Inc()
-
+		protocol = "tcp"
 		tcpUpstream := dns.NewClient()
 		tcpUpstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
 		tcpUpstream.WriteTimeout = time.Duration(r.UpstreamWriteTimeout) * time.Second
@@ -144,5 +142,14 @@ func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
 		response, _, err = tcpUpstream.Exchange(context.TODO(), m, "tcp", r.resolveAddr())
 	}
 
-	return response, err
+	return response, protocol, err
+}
+
+func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
+	msg, protocol, err := r.directQuery(m)
+	prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "udp").Inc()
+	if protocol == "tcp" {
+		prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "tcp").Inc()
+	}
+	return msg, err
 }
