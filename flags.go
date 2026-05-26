@@ -73,9 +73,9 @@ func ParseFlags() Flags {
 	httpPort := flag.Int("http-port", 8053, "Port that PrismDNS HTTP API runs on")
 	httpApiKey := flag.String("http-api-key", "", "API key for PrismDNS HTTP API")
 	httpApiKeyFile := flag.String("http-api-key-file", "", "API key file for PrismDNS HTTP API")
-	upstreamTimeout := flag.Int("upstream-timeout", 2, "Timeout for upstream DNS requests")
-	clientReadTimeout := flag.Int("client-read-timeout", 2, "Read timeout for client DNS requests")
-	clientIdleTimeout := flag.Int("client-idle-timeout", 8, "Idle timeout for client DNS requests")
+	upstreamTimeout := flag.Int("upstream-timeout", 2, "Timeout in seconds for upstream DNS requests")
+	clientReadTimeout := flag.Int("client-read-timeout", 2, "Read timeout in seconds for client DNS requests")
+	clientIdleTimeout := flag.Int("client-idle-timeout", 2, "Idle timeout in seconds for client DNS requests")
 	debug := flag.Bool("debug", false, "Enable debug logs")
 	fallback := flag.String("fallback", "", "Fallback DNS server in the format <ip>[,<port>] used if no routes match. If unset, NXDOMAIN is returned.")
 	// 15000 per minute equals 250 queries per second
