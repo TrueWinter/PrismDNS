@@ -12,18 +12,16 @@ import (
 )
 
 type Route struct {
-	Ip              string
-	Port            int
-	UpstreamReadTimeout  int
-	UpstreamWriteTimeout int
+	Ip string
+	Port int
+	Timeout int
 }
 
 type Router struct {
-	Routes                map[string]*Route
-	RouteMu               sync.RWMutex
-	UpstreamReadTimeout   int
-	UpstreamWriteTimeout  int
-	HealthCheck           *HealthCheckManager
+	Routes map[string]*Route
+	RouteMu sync.RWMutex
+	Timeout int
+	HealthCheck *HealthCheckManager
 }
 
 func (r *Route) resolveAddr() string {
@@ -78,10 +76,9 @@ func (r *Router) AddRoute(domain string, ip string, port int) error {
 		return fmt.Errorf("Route for domain %v already exists", domain)
 	}
 	r.Routes[domain] = &Route{
-		Ip:               ip,
-		Port:             port,
-		UpstreamReadTimeout:  r.UpstreamReadTimeout,
-		UpstreamWriteTimeout: r.UpstreamWriteTimeout,
+		Ip: ip,
+		Port: port,
+		Timeout:  r.Timeout,
 	}
 	return nil
 }
@@ -119,12 +116,14 @@ func (r *Route) directQuery(m *dns.Msg) (*dns.Msg, string, error) {
 	m.Authoritative = false
 	m.Rcode = dns.RcodeSuccess
 
+	timeout := time.Duration(r.Timeout) * time.Second
+
 	protocol := "udp"
 	upstream := dns.NewClient()
-	upstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
-	upstream.WriteTimeout = time.Duration(r.UpstreamWriteTimeout) * time.Second
+	upstreamCtx, upstreamCancel := context.WithTimeout(context.Background(), timeout)
+	defer upstreamCancel()
+	response, _, err := upstream.Exchange(upstreamCtx, m, "udp", r.resolveAddr())
 
-	response, _, err := upstream.Exchange(context.TODO(), m, "udp", r.resolveAddr())
 	if response == nil || response.Truncated {
 		if Debug {
 			if response == nil {
@@ -136,10 +135,9 @@ func (r *Route) directQuery(m *dns.Msg) (*dns.Msg, string, error) {
 
 		protocol = "tcp"
 		tcpUpstream := dns.NewClient()
-		tcpUpstream.ReadTimeout = time.Duration(r.UpstreamReadTimeout) * time.Second
-		tcpUpstream.WriteTimeout = time.Duration(r.UpstreamWriteTimeout) * time.Second
-
-		response, _, err = tcpUpstream.Exchange(context.TODO(), m, "tcp", r.resolveAddr())
+		tcpUpstreamCtx, tcpUpstreamCancel := context.WithTimeout(context.Background(), timeout)
+		defer tcpUpstreamCancel()
+		response, _, err = tcpUpstream.Exchange(tcpUpstreamCtx, m, "tcp", r.resolveAddr())
 	}
 
 	return response, protocol, err

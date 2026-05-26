@@ -56,8 +56,7 @@ type Flags struct {
 	RateLimitWindow int
 	DomainRateLimits map[string]int
 	LogRateLimits bool
-	UpstreamReadTimeout int
-	UpstreamWriteTimeout int
+	UpstreamTimeout int
 	ClientReadTimeout int
 	ClientIdleTimeout int
 	Debug bool
@@ -74,8 +73,7 @@ func ParseFlags() Flags {
 	httpPort := flag.Int("http-port", 8053, "Port that PrismDNS HTTP API runs on")
 	httpApiKey := flag.String("http-api-key", "", "API key for PrismDNS HTTP API")
 	httpApiKeyFile := flag.String("http-api-key-file", "", "API key file for PrismDNS HTTP API")
-	upstreamReadTimeout := flag.Int("upstream-read-timeout", 2, "Read timeout for upstream DNS requests")
-	upstreamWriteTimeout := flag.Int("upstream-write-timeout", 8, "Write timeout for upstream DNS requests")
+	upstreamTimeout := flag.Int("upstream-timeout", 2, "Timeout for upstream DNS requests")
 	clientReadTimeout := flag.Int("client-read-timeout", 2, "Read timeout for client DNS requests")
 	clientIdleTimeout := flag.Int("client-idle-timeout", 8, "Idle timeout for client DNS requests")
 	debug := flag.Bool("debug", false, "Enable debug logs")
@@ -190,8 +188,7 @@ func ParseFlags() Flags {
 		HttpApiKey: *httpApiKey,
 		ParsedRoutes: routes,
 		Fallback: *fallback,
-		UpstreamReadTimeout: *upstreamReadTimeout,
-		UpstreamWriteTimeout: *upstreamWriteTimeout,
+		UpstreamTimeout: *upstreamTimeout,
 		ClientReadTimeout: *clientReadTimeout,
 		ClientIdleTimeout: *clientIdleTimeout,
 		RateLimit: *rateLimit,
