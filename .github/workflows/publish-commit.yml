@@ -1,0 +1,26 @@
+name: Publish commit
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  prepare-build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Get version
+        id: version
+        run: |
+          $VERSION=$(./.github/scripts/version.sh)
+          echo "version=truewinter/prismdns:$VERSION" >> $GITHUB_OUTPUT
+
+  build-and-release:
+    uses: TrueWinter/PrismDNS/.github/workflows/docker-release.yml@main
+    needs: prepare-build
+    with:
+      version: ${{ needs.prepare-build.outputs.version }}
+    secrets:
+      dockerhub_username: ${{ secrets.dockerhub_username }}
+      dockerhub_token: ${{ secrets.dockerhub_token }}

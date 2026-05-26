@@ -2,24 +2,15 @@
 
 rm -r dist 2&>/dev/null
 
-COMMIT=$(git rev-parse --short HEAD)
-
-TAG=$(git describe --tags --abbrev=0 --candidates=100 2>/dev/null)
-if [[ "$TAG" != "" ]]; then
-  COMMIT="${TAG}-${COMMIT}"
-fi
-
-UNRESOLVED=$(git status -s)
-if [[ "$UNRESOLVED" != "" ]]; then
-  COMMIT="${COMMIT}-indev"
-fi
+VERSION=$(./.github/scripts/version.sh)
 
 build() {
   DIST_NAME="dist/PrismDNS-${GOOS}-${GOARCH}"
   if [ "$GOOS" == "windows" ]; then
     DIST_NAME=$DIST_NAME.exe
   fi
-  go build -ldflags "-X main.Version=${COMMIT} -s" -o $DIST_NAME .
+  echo "Building $DIST_NAME $VERSION"
+  go build -ldflags "-X main.Version=${VERSION} -s" -o $DIST_NAME .
 }
 
 GOOS=windows GOARCH=amd64 build
