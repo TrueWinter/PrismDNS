@@ -110,14 +110,5 @@ func (h *DnsHandler) incrementServfail(cause string) {
 }
 
 func rcodeToString(rcode uint16) string {
-	switch rcode {
-	case dns.RcodeSuccess:
-		return "NOERROR"
-	case dns.RcodeNameError:
-		return "NXDOMAIN"
-	case dns.RcodeServerFailure:
-		return "SERVFAIL"
-	default:
-		return "NOERROR"
-	}
+	return dns.RcodeToString[rcode]
 }
