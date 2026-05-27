@@ -93,7 +93,7 @@ Get health status of all configured routes.
     "Health": {
       "Ok": true,
       "Error": "",
-      "LastCheck": 1779670849
+      "LastCheck": 1779670849,
       "LastCheckLatency": 1.204
     }
   }
