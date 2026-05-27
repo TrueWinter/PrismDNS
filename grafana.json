@@ -675,6 +675,7 @@
             "lineWidth": 1
           },
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -684,7 +685,7 @@
               },
               {
                 "color": "green",
-                "value": 0
+                "value": 1
               }
             ]
           }
@@ -1556,7 +1557,7 @@
   "timezone": "browser",
   "title": "PrismDNS",
   "uid": "adbgz8x",
-  "version": 5,
+  "version": 6,
   "weekStart": "",
   "id": null
 }
