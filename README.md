@@ -106,6 +106,9 @@ Basic health check endpoint for the HTTP API (no authentication required).
 ### GET `/healthcheck/routes/{route}`
 Get health status of a specific route. See [GET `/healthcheck/routes`](#get-healthcheckroutes).
 
+### GET `/metrics`
+Prometheus metrics endpoint (no authentication required). A [pre-built Grafana dashboard](grafana.json) is available for your convenience.
+
 ## Chaos Queries
 
 For troubleshooting, PrismDNS supports DNS CHAOS queries for version information:
