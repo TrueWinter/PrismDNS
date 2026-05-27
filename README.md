@@ -34,13 +34,15 @@ docker run -d \
   -p 53:53/udp \
   -p 53:53/tcp \
   -p 8053:8053 \
-  prismdns \
+  truewinter/prismdns:{version} \
   -route example.com,10.0.1.5 \
   -route dept.example.com,10.0.2.8 \
   -route api.internal,10.0.1.6 \
   -fallback 10.0.1.7:1053 \
   -http-api-key your-secret-api-key
 ```
+
+Images are not published with the `latest` tag. Check the releases page for the latest version.
 
 For a full list of flags, run `docker run prismdns -help`
 
@@ -131,5 +133,5 @@ This compiles both Linux and Windows executables to the `dist/` directory.
 ### With Docker
 
 ```bash
-docker build -t prismdns .
+docker build -t truewinter/prismdns .
 ```
