@@ -115,7 +115,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(last_over_time(prismdns_dns_requests_total[$__range]))",
+          "expr": "sum(last_over_time(prismdns_dns_requests_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A",
@@ -179,7 +179,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(last_over_time(prismdns_dns_responses_total[$__range]))",
+          "expr": "sum(last_over_time(prismdns_dns_responses_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -243,7 +243,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(last_over_time(prismdns_upstream_queries_total[$__range]))",
+          "expr": "sum(last_over_time(prismdns_upstream_queries_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -307,7 +307,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(last_over_time(prismdns_upstream_responses_total[$__range]))",
+          "expr": "sum(last_over_time(prismdns_upstream_responses_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -371,7 +371,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(last_over_time(prismdns_servfail_total[$__range]))",
+          "expr": "sum(last_over_time(prismdns_servfail_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -437,7 +437,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg(last_over_time(prismdns_upstream_latency[$__range]))",
+          "expr": "avg(last_over_time(prismdns_upstream_latency{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -506,7 +506,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "count(last_over_time(prismdns_upstream_health[$__range]) != 1)",
+          "expr": "count(last_over_time(prismdns_upstream_health{instance=~\"$instance\"}[$__range]) != 1)",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -570,7 +570,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(last_over_time(prismdns_ratelimit_hits_total[$__range]))",
+          "expr": "sum(last_over_time(prismdns_ratelimit_hits_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -634,7 +634,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(last_over_time(prismdns_nxdomain_total[$__range]))",
+          "expr": "sum(last_over_time(prismdns_nxdomain_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -711,7 +711,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "prismdns_upstream_health",
+          "expr": "prismdns_upstream_health{instance=~\"$instance\"}",
           "legendFormat": "{{instance}}: {{upstream}}",
           "range": true,
           "refId": "A",
@@ -814,7 +814,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "prismdns_upstream_latency",
+          "expr": "prismdns_upstream_latency{instance=~\"$instance\"}",
           "legendFormat": "{{instance}}: {{upstream}}",
           "range": true,
           "refId": "A"
@@ -912,7 +912,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(prismdns_dns_requests_total[$__rate_interval])",
+          "expr": "increase(prismdns_dns_requests_total{instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A"
@@ -1010,7 +1010,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(prismdns_dns_responses_total[$__rate_interval])",
+          "expr": "increase(prismdns_dns_responses_total{instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "{{instance}}: {{rcode}}",
           "range": true,
           "refId": "A"
@@ -1108,7 +1108,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(prismdns_upstream_queries_total[$__rate_interval])",
+          "expr": "increase(prismdns_upstream_queries_total{instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "{{instance}}: {{upstream}} {{protocol}}",
           "range": true,
           "refId": "A"
@@ -1206,7 +1206,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(prismdns_upstream_responses_total[$__rate_interval])",
+          "expr": "increase(prismdns_upstream_responses_total{instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "{{instance}}: {{upstream}} {{rcode}}",
           "range": true,
           "refId": "A"
@@ -1304,7 +1304,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(prismdns_nxdomain_total[$__rate_interval])",
+          "expr": "increase(prismdns_nxdomain_total{instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A"
@@ -1402,7 +1402,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(prismdns_servfail_total[$__rate_interval])",
+          "expr": "increase(prismdns_servfail_total{instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "{{instance}}: {{cause}}",
           "range": true,
           "refId": "A"
@@ -1500,7 +1500,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "increase(prismdns_ratelimit_hits_total[$__rate_interval])",
+          "expr": "increase(prismdns_ratelimit_hits_total{instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A"
@@ -1515,7 +1515,27 @@
   "schemaVersion": 42,
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "definition": "label_values(prismdns_dns_requests_total,instance)",
+        "description": "",
+        "includeAll": true,
+        "label": "Instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(prismdns_dns_requests_total,instance)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-3h",
@@ -1525,6 +1545,6 @@
   "timezone": "browser",
   "title": "PrismDNS",
   "uid": "adbgz8x",
-  "version": 7,
+  "version": 8,
   "weekStart": ""
 }
