@@ -2,6 +2,9 @@ FROM golang:1.26.3-alpine3.22 AS build
 
 RUN apk add bash git
 
+ARG VERSION
+ENV VERSION=$VERSION
+
 WORKDIR /app
 
 COPY . .
