@@ -1,0 +1,23 @@
+name: Build and Publish Docker Image
+
+on:
+  workflow_call:
+    outputs:
+      version:
+        value: ${{ jobs.prepare-build.outputs.version }}
+
+jobs:
+  prepare-build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Make the script files executable
+        run: chmod +x ./.github/scripts/version.sh
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(./.github/scripts/version.sh)
+          echo "version=truewinter/prismdns:$VERSION" >> $GITHUB_OUTPUT

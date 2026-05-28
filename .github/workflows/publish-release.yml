@@ -7,19 +7,7 @@ on:
 
 jobs:
   prepare-build:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - name: Make the script files executable
-        run: chmod +x ./.github/scripts/version.sh
-      - name: Get version
-        id: version
-        run: |
-          VERSION=$(./.github/scripts/version.sh)
-          echo "version=truewinter/prismdns:$VERSION" >> $GITHUB_OUTPUT
+    uses: TrueWinter/PrismDNS/.github/workflows/prepare-build.yml@main
 
   build-and-release-github:
     runs-on: ubuntu-latest
@@ -33,9 +21,11 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: Make the script files executable
-        run: chmod +x ./build.sh ./.github/scripts/version.sh ./.github/scripts/commit-log.sh
+        run: chmod +x ./build.sh ./.github/scripts/commit-log.sh
       - name: Build
         run: ./build.sh
+        env:
+          VERSION: ${{ needs.prepare-build.outputs.version }}
       - name: Get commit log
         run: ./.github/scripts/commit-log.sh > commits.log
       - name: Release

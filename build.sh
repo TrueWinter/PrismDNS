@@ -2,7 +2,9 @@
 
 rm -r dist 2&>/dev/null
 
-VERSION=$(./.github/scripts/version.sh)
+if [[ "$VERSION" == "" ]]; then
+  VERSION=$(./.github/scripts/version.sh)
+fi
 
 build() {
   DIST_NAME="dist/PrismDNS-${GOOS}-${GOARCH}"
