@@ -84,13 +84,13 @@ func (h *DnsHandler) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.
 		result := <-ch
 
 		if result.err != nil {
-			prismdnsUpstreamResponsesTotal.WithLabelValues(route.Ip, "SERVFAIL").Inc()
+			prismdnsUpstreamResponsesTotal.WithLabelValues(FormatAddr(route.Ip, route.Port), "SERVFAIL").Inc()
 			h.incrementServfail("upstream_failure")
 			prismdnsDNSResponsesTotal.WithLabelValues("SERVFAIL").Inc()
 			h.respondWithRcode(dns.RcodeServerFailure, r, w)
 		} else {
 			rcodeStr := rcodeToString(result.response.Rcode)
-			prismdnsUpstreamResponsesTotal.WithLabelValues(route.Ip, rcodeStr).Inc()
+			prismdnsUpstreamResponsesTotal.WithLabelValues(FormatAddr(route.Ip, route.Port), rcodeStr).Inc()
 			h.respond(result.response, w)
 			prismdnsDNSResponsesTotal.WithLabelValues(rcodeStr).Inc()
 		}

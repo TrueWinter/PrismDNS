@@ -145,9 +145,9 @@ func (r *Route) directQuery(m *dns.Msg) (*dns.Msg, string, error) {
 
 func (r *Route) Query(m *dns.Msg) (*dns.Msg, error) {
 	msg, protocol, err := r.directQuery(m)
-	prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "udp").Inc()
+	prismdnsUpstreamQueriesTotal.WithLabelValues(FormatAddr(r.Ip, r.Port), "udp").Inc()
 	if protocol == "tcp" {
-		prismdnsUpstreamQueriesTotal.WithLabelValues(r.Ip, "tcp").Inc()
+		prismdnsUpstreamQueriesTotal.WithLabelValues(FormatAddr(r.Ip, r.Port), "tcp").Inc()
 	}
 	return msg, err
 }
