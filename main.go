@@ -20,8 +20,20 @@ func main() {
 
 	ServerId = flags.ServerId
 	Debug = flags.Debug
+
+	fmt.Printf("Running PrismDNS version %v\nServer ID: %v\nDebug mode: %v\n", Version, ServerId, Debug)
+
 	if flags.HideVersion {
 		Version = ""
+	}
+
+	if len(flags.ParsedRoutes) == 0 {
+		fmt.Printf("No routes configured. Please use -route flag with at least one route configuration or add routes through the HTTP API.")
+	}
+
+	fmt.Println("Configured routes:")
+	for _, route := range flags.ParsedRoutes {
+		fmt.Printf("  - %v -> %v:%v\n", route.Domain, route.Ip, route.Port)
 	}
 
 	router := &Router{

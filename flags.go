@@ -153,15 +153,6 @@ func ParseFlags() Flags {
 		})
 	}
 
-	if len(routes) == 0 {
-		fmt.Printf("No routes configured. Please use -route flag with at least one route configuration or add routes through the HTTP API.")
-	}
-
-	fmt.Println("Configured routes:")
-	for _, route := range routes {
-		fmt.Printf("  - %v -> %v:%v\n", route.Domain, route.Ip, route.Port)
-	}
-
 	domainRateLimits := make(map[string]int)
 
 	for _, domainRateLimit := range domainRateLimitFlags {
