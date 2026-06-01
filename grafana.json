@@ -1,47 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "12.3.6"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "status-history",
-      "name": "Status history",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -61,12 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 0,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -117,11 +75,7 @@
           "expr": "round(increase(prismdns_dns_requests_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "__auto",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "DNS Requests",
@@ -130,7 +84,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -181,11 +135,7 @@
           "expr": "round(sum(increase(prismdns_dns_responses_total{instance=~\"$instance\"}[$__range])))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "DNS Responses",
@@ -194,7 +144,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -242,14 +192,10 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "round(increase(prismdns_upstream_queries_total{instance=~\"$instance\"}[$__range]))",
+          "expr": "round(sum(increase(prismdns_upstream_queries_total{instance=~\"$instance\"}[$__range])))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "Upstream Requests",
@@ -258,7 +204,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -309,11 +255,7 @@
           "expr": "round(sum(increase(prismdns_upstream_responses_total{instance=~\"$instance\"}[$__range])))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "Upstream Responses",
@@ -322,7 +264,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -373,11 +315,7 @@
           "expr": "round(increase(prismdns_servfail_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "SERVFAIL Responses",
@@ -386,7 +324,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -439,11 +377,7 @@
           "expr": "avg(last_over_time(prismdns_upstream_latency{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "Average Upstream Latency",
@@ -452,7 +386,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -508,11 +442,7 @@
           "expr": "round(count(last_over_time(prismdns_upstream_health{instance=~\"$instance\"}[$__range]) != 1))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "Upstream Outages",
@@ -521,7 +451,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -572,11 +502,7 @@
           "expr": "round(increase(prismdns_ratelimit_hits_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "Ratelimited Queries",
@@ -585,7 +511,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -636,11 +562,7 @@
           "expr": "round(increase(prismdns_nxdomain_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "NXDOMAIN Responses",
@@ -649,7 +571,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -713,11 +635,7 @@
           "expr": "prismdns_upstream_health{instance=~\"$instance\"}",
           "legendFormat": "{{instance}}: {{upstream}}",
           "range": true,
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "Upstream Status",
@@ -726,7 +644,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -810,7 +728,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "prismdns_upstream_latency{instance=~\"$instance\"}",
@@ -825,7 +743,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -908,7 +826,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "increase(prismdns_dns_requests_total{instance=~\"$instance\"}[$__rate_interval])",
@@ -923,7 +841,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -1006,7 +924,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "increase(prismdns_dns_responses_total{instance=~\"$instance\"}[$__rate_interval])",
@@ -1021,7 +939,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -1104,7 +1022,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "increase(prismdns_upstream_queries_total{instance=~\"$instance\"}[$__rate_interval])",
@@ -1119,7 +1037,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -1202,7 +1120,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "increase(prismdns_upstream_responses_total{instance=~\"$instance\"}[$__rate_interval])",
@@ -1217,7 +1135,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -1300,7 +1218,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "increase(prismdns_nxdomain_total{instance=~\"$instance\"}[$__rate_interval])",
@@ -1315,7 +1233,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -1398,7 +1316,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "increase(prismdns_servfail_total{instance=~\"$instance\"}[$__rate_interval])",
@@ -1413,7 +1331,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "cdyegbm5iy134d"
       },
       "fieldConfig": {
         "defaults": {
@@ -1496,7 +1414,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "cdyegbm5iy134d"
           },
           "editorMode": "code",
           "expr": "increase(prismdns_ratelimit_hits_total{instance=~\"$instance\"}[$__rate_interval])",
@@ -1517,7 +1435,12 @@
     "list": [
       {
         "allowCustomValue": false,
-        "current": {},
+        "current": {
+          "text": "All",
+          "value": [
+            "$__all"
+          ]
+        },
         "definition": "label_values(prismdns_dns_requests_total,instance)",
         "description": "",
         "includeAll": true,
@@ -1544,7 +1467,5 @@
   "timezone": "browser",
   "title": "PrismDNS",
   "uid": "adbgz8x",
-  "version": 10,
-  "weekStart": "",
-  "id": null
+  "version": 11
 }
