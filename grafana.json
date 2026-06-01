@@ -114,7 +114,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "increase(prismdns_dns_requests_total{instance=~\"$instance\"}[$__range])",
+          "expr": "round(increase(prismdns_dns_requests_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A",
@@ -178,7 +178,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase(prismdns_dns_responses_total{instance=~\"$instance\"}[$__range]))",
+          "expr": "round(sum(increase(prismdns_dns_responses_total{instance=~\"$instance\"}[$__range])))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -242,7 +242,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "increase(prismdns_upstream_queries_total{instance=~\"$instance\"}[$__range])",
+          "expr": "round(increase(prismdns_upstream_queries_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -306,7 +306,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase(prismdns_upstream_responses_total{instance=~\"$instance\"}[$__range]))",
+          "expr": "round(sum(increase(prismdns_upstream_responses_total{instance=~\"$instance\"}[$__range])))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -370,7 +370,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "increase(prismdns_servfail_total{instance=~\"$instance\"}[$__range])",
+          "expr": "round(increase(prismdns_servfail_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -505,7 +505,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "count(last_over_time(prismdns_upstream_health{instance=~\"$instance\"}[$__range]) != 1)",
+          "expr": "round(count(last_over_time(prismdns_upstream_health{instance=~\"$instance\"}[$__range]) != 1))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -569,7 +569,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "increase(prismdns_ratelimit_hits_total{instance=~\"$instance\"}[$__range])",
+          "expr": "round(increase(prismdns_ratelimit_hits_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -633,7 +633,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "increase(prismdns_nxdomain_total{instance=~\"$instance\"}[$__range])",
+          "expr": "round(increase(prismdns_nxdomain_total{instance=~\"$instance\"}[$__range]))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A",
@@ -1544,7 +1544,7 @@
   "timezone": "browser",
   "title": "PrismDNS",
   "uid": "adbgz8x",
-  "version": 9,
+  "version": 10,
   "weekStart": "",
   "id": null
 }
